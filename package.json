@@ -1,0 +1,11 @@
+{
+    "name": "SimpleTwitchBot",
+    "version": "1.0.0",
+    "description": "A fun twitch bot",
+    "main": "app.js",
+    "scripts": {},
+    "author": "Jason Li",
+    "dependencies": {
+        "tmi.js": "^1.2.1"
+    }
+}

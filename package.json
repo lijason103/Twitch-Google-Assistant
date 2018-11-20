@@ -6,6 +6,7 @@
     "scripts": {},
     "author": "Jason Li",
     "dependencies": {
+        "google-assistant": "^0.5.2",
         "tmi.js": "^1.2.1"
     }
 }

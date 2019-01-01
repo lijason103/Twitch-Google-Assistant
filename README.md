@@ -1,4 +1,6 @@
-# SimpleTwitchBot
+# Twitch Google Assistant
+
+A Google assistant chat bot for Twitch channel
 
 Usage:
 

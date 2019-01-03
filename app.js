@@ -1,6 +1,7 @@
 var tmi = require('tmi.js')
 var settings = require('./settings')
 var path = require('path')
+const fetch = require('node-fetch');
 const GoogleAssistant = require('google-assistant');
 
 // Google Assistant Setup
@@ -59,32 +60,75 @@ const startConversation = (conversation, onResponseCallback) => {
     });
 }
 
-const responseDelayMin = 1000
-const responseDelayMax = 3000
+const DELAY_MIN = 1000
+const DELAY_MAX = 3000
 
 client.on("message", function onMessageHandler(channel, userstate, msg, self) {
     if (self) {return}
     let username = userstate.username
     let isSubscriber = userstate.subscriber
     let isMod = userstate.mod
-    console.log("=======")
-    console.log(`${username}: ${msg}`)
-    try{
-        config.conversation.textQuery = msg;
-        assistant.start(config.conversation, 
-            (conversation) => startConversation(conversation, 
-                async (response) => {
-                    setTimeout(() => {
-                        response = sanitizeResponse(response)
-                        console.log(response)
-                        client.say(settings.CHANNELS[0], response)
-                    }, Math.random() * (responseDelayMax - responseDelayMin) + responseDelayMin )
+
+    // Google assistant
+    if (msg.startsWith('!google ')) {
+        console.log("=======")
+        console.log(`${username}: ${msg}`)
+        try{
+            config.conversation.textQuery = msg;
+            assistant.start(config.conversation, 
+                (conversation) => startConversation(conversation, 
+                    async (response) => {
+                        setTimeout(() => {
+                            response = sanitizeResponse(response)
+                            console.log(response)
+                            client.say(settings.CHANNELS[0], response)
+                        }, Math.random() * (DELAY_MAX - DELAY_MIN) + DELAY_MIN )
+                    }
+                )
+            );
+        }catch (error) {
+            console.log("error: ", error)
+        }
+    } else if (msg.startsWith('!rps ')) {
+        // get player name
+        let playerName = msg.replace('!rps ', '')
+        if (playerName === settings.USERNAME) {
+            return
+        }
+        
+        // check if user is in the room
+        fetch(`https://tmi.twitch.tv/group/user/${channel.replace('#', '')}/chatters`)
+            .then(response => {
+                return response.json()
+            })
+            .then(json => {
+                // combine the keys
+                let viewers = []
+                Object.keys(json.chatters).forEach((key, index) => {
+                    viewers = viewers.concat(json.chatters[key])
+                })
+                let isOpponentFound = false
+                for(let i = 0; i < viewers.length; ++i) {
+                    if (viewers[i] === playerName) {
+                        isOpponentFound = true
+                        break
+                    }
                 }
-            )
-        );
-    }catch (error) {
-        console.log("error: ", error)
+                // start a game with the opponent
+                if (isOpponentFound) {
+                    
+                }
+            })
     }
+})
+
+client.on("whisper", function onMessageHandler(channel, userstate, msg, self) {
+    if (self) {return}
+    let username = userstate.username
+    let isSubscriber = userstate.subscriber
+    let isMod = userstate.mod
+    // console.log(msg)
+    // client.whisper(settings.CHANNELS[0], "msg")
 })
 
 sanitizeResponse = (response) => {
